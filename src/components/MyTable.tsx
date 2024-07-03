@@ -5,6 +5,7 @@ import { TableType } from "../types.tsx";
 import NewRecordModal from "./NewRecordModal.tsx";
 import { useActions } from "../hooks/useActions.ts";
 import { useTypedSelector } from "../hooks/useTypedSelector.ts";
+import {tableActions} from "../store/tableSlice.ts";
 
 export const columns = (handleDelete: (id: number) => void, handleEdit: (record: TableType) => void): TableProps<TableType>['columns'] => [
     {
@@ -55,26 +56,22 @@ export const columns = (handleDelete: (id: number) => void, handleEdit: (record:
 ];
 
 const MyTable: React.FC = () => {
-    const {
-        deleteRecord,
-        addRecord,
-        updateRecord
-    } = useActions();
+    const actions = useActions(tableActions);
     const data = useTypedSelector(state => state.table.data);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<TableType | null>(null);
 
     const handleDelete = (id: number) => {
-        deleteRecord(id);
+        actions.deleteRecord(id);
     };
 
     const handleCreate = (newRecord: TableType) => {
-        addRecord(newRecord);
+        actions.addRecord(newRecord);
         closeModal();
     };
 
     const handleUpdate = (updatedRecord: TableType) => {
-        updateRecord(updatedRecord);
+        actions.updateRecord(updatedRecord);
         setEditingRecord(null);
         closeModal();
     };
