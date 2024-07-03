@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import { Modal, Form, Input } from 'antd';
 import {FormType, TableType} from "../types.tsx";
 
@@ -16,8 +16,11 @@ const NewRecordModal: React.FC<NewRecordModalProps> = ({ visible, record, onCrea
 
     const isEditing = !!record;
 
+    useEffect(() => {
+        form.setFieldsValue(record || {});
+    }, [record, form]);
+
     const  onNameChange = (value: string) => {
-        console.log('onNameChange', value)
         if (/\d/.test(value)) {
             setNameError('Oops, not number!');
         } else {
@@ -28,10 +31,13 @@ const NewRecordModal: React.FC<NewRecordModalProps> = ({ visible, record, onCrea
     return (
         <Modal
             open={visible}
-            title={isEditing ? "Edit Record" : "Create New Record"}
+            title={isEditing ? `Edit ${record?.name}` : "Create New Record"}
             okText={isEditing ? "Update" : "Create"}
             cancelText="Cancel"
-            onCancel={onCancel}
+            onCancel={() => {
+                form.resetFields();
+                onCancel();
+            }}
             onOk={() => {
                 form.validateFields()
                     .then(values => {
@@ -49,11 +55,12 @@ const NewRecordModal: React.FC<NewRecordModalProps> = ({ visible, record, onCrea
                         );
                     })
                     .catch((error) => {
+                        form.resetFields();
                         console.log('Error:', error);
                     });
             }}
         >
-            <Form form={form} layout="vertical" name="form_in_modal" initialValues={record || {}}>
+            <Form form={form} layout="vertical" name="form_in_modal">
                 <Form.Item
                     name="name"
                     label="Name"

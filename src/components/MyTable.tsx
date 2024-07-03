@@ -61,7 +61,6 @@ const MyTable: React.FC = () => {
         updateRecord
     } = useActions();
     const data = useTypedSelector(state => state.table.data);
-    //const [data, setData] = useState<TableType[]>(tableData);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<TableType | null>(null);
 
@@ -71,14 +70,13 @@ const MyTable: React.FC = () => {
 
     const handleCreate = (newRecord: TableType) => {
         addRecord(newRecord);
-        //const newData = [...data, { ...newRecord, id: data.length + 1 }];
-        //setData(newData);
         closeModal();
     };
 
     const handleUpdate = (updatedRecord: TableType) => {
         updateRecord(updatedRecord);
-        setIsModalOpen(false);
+        setEditingRecord(null);
+        closeModal();
     };
 
     const handleEdit = (record: TableType) => {
@@ -92,6 +90,7 @@ const MyTable: React.FC = () => {
 
     const closeModal = () => {
         setIsModalOpen(false);
+        setEditingRecord(null);
     };
 
     return (

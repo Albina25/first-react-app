@@ -15,10 +15,18 @@ const tableSlice = createSlice({
     initialState,
     reducers: {
         deleteRecord: (state, action: PayloadAction<number>) => {
-            state.data = state.data.filter(item => item.id !== action.payload);
+            const index = state.data.findIndex(item => item.id === action.payload);
+
+            if (index === -1) {
+                return;
+            }
+
+            state.data.splice(index, 1);
+            console.log('delete index', index)
         },
         addRecord: (state, action: PayloadAction<FormType>) => {
-            const newRecord = { ...action.payload, id: state.data.length + 1 };
+            const maxId = Math.max(...state.data.map(item => item.id));
+            const newRecord = { ...action.payload, id: maxId + 1 };
             state.data.push(newRecord);
         },
         updateRecord: (state, action: PayloadAction<TableType>) => {
@@ -30,6 +38,4 @@ const tableSlice = createSlice({
     },
 });
 
-export const tableActions = tableSlice.actions;
-//export const { deleteRecord, addRecord } = tableSlice.actions;
-export default tableSlice.reducer;
+export const { reducer: tableReducer, actions: tableActions } = tableSlice;
