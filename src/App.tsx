@@ -1,5 +1,5 @@
 import './App.css'
-import MyTable from "./components/MyTable.tsx";
+import {MyTable} from "./components/MyTable.tsx";
 import store from "./store/store.ts";
 import {Provider} from "react-redux";
 

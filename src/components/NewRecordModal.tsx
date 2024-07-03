@@ -10,7 +10,7 @@ interface NewRecordModalProps {
     onCancel: () => void;
 }
 
-const NewRecordModal: React.FC<NewRecordModalProps> = ({ visible, record, onCreate, onCancel, onUpdate }) => {
+export const NewRecordModal: React.FC<NewRecordModalProps> = ({ visible, record, onCreate, onCancel, onUpdate }) => {
     const [form] = Form.useForm();
     const [nameError, setNameError] = useState<string | null>(null);
 
@@ -83,5 +83,3 @@ const NewRecordModal: React.FC<NewRecordModalProps> = ({ visible, record, onCrea
         </Modal>
     );
 };
-
-export default NewRecordModal;
