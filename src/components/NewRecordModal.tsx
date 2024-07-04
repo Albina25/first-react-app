@@ -17,7 +17,15 @@ export const NewRecordModal: React.FC<NewRecordModalProps> = ({ visible, record,
     const isEditing = !!record;
 
     useEffect(() => {
-        form.setFieldsValue(record || {});
+        if (record) {
+            form.setFieldsValue({
+                ...record,
+                tags: record.tags.join(',')
+            });
+        } else {
+            form.resetFields();
+        }
+        //form.setFieldsValue(record || {});
     }, [record, form]);
 
     const  onNameChange = (value: string) => {
@@ -43,16 +51,21 @@ export const NewRecordModal: React.FC<NewRecordModalProps> = ({ visible, record,
                     .then(values => {
                         form.resetFields();
                         if (isEditing) {
-                            onUpdate({ ...record, ...values });
-                        }
-                        onCreate(
-                            {
-                                name: values.name,
-                                age: values.age,
-                                address: values.address || '',
+                            onUpdate({
+                                ...record,
+                                ...values,
                                 tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : []
-                            }
-                        );
+                            });
+                        } else {
+                            onCreate(
+                                {
+                                    name: values.name,
+                                    age: values.age,
+                                    address: values.address || '',
+                                    tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : []
+                                }
+                            );
+                        }
                     })
                     .catch((error) => {
                         form.resetFields();

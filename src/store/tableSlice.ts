@@ -4,10 +4,14 @@ import { tableData } from '../data/TableData';
 
 interface TableState {
     data: TableType[];
+    isLoading: boolean;
+    error: string;
 }
 
 const initialState: TableState = {
     data: tableData,
+    isLoading: false,
+    error: ''
 };
 
 const tableSlice = createSlice({
@@ -22,7 +26,6 @@ const tableSlice = createSlice({
             }
 
             state.data.splice(index, 1);
-            console.log('delete index', index)
         },
         addRecord: (state, action: PayloadAction<FormType>) => {
             const maxId = Math.max(...state.data.map(item => item.id));
@@ -30,6 +33,7 @@ const tableSlice = createSlice({
             state.data.push(newRecord);
         },
         updateRecord: (state, action: PayloadAction<TableType>) => {
+            console.log('1', action.payload)
             const index = state.data.findIndex(item => item.id === action.payload.id);
             if (index !== -1) {
                 state.data[index] = action.payload;

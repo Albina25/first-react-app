@@ -1,12 +1,14 @@
-import { configureStore } from "@reduxjs/toolkit";
-import { tableReducer } from './tableSlice';
+import {configureStore} from "@reduxjs/toolkit";
+import { tableDataApi } from  "../api/tableDataApi"
 
-export const store = configureStore({
-    reducer: {
-        table: tableReducer,
-        /*middleware: getDefaultMiddleware =>
-            getDefaultMiddleware().concat(tableSlice.middleware),*/
-    },
+const rootReducer = {
+    [tableDataApi.reducerPath]: tableDataApi.reducer,
+};
+
+const store = configureStore({
+    reducer: rootReducer,
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware().concat(tableDataApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

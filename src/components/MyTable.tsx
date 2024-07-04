@@ -1,10 +1,8 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Button, Space, Table, TableProps, Tag} from 'antd';
 import {TableType} from "../types.tsx";
 import {NewRecordModal} from "./NewRecordModal.tsx";
-import {useActions} from "../hooks/useActions.ts";
-import {useTypedSelector} from "../hooks/useTypedSelector.ts";
-import {tableActions} from "../store/tableSlice.ts";
+import {useGetTableDataQuery, useAddRecordMutation, useDeleteRecordMutation, useUpdateRecordMutation} from "../api/tableDataApi.ts";
 
 export const columns = (handleDelete: (id: number) => void, handleEdit: (record: TableType) => void): TableProps<TableType>['columns'] => [
     {
@@ -55,22 +53,44 @@ export const columns = (handleDelete: (id: number) => void, handleEdit: (record:
 ];
 
 export const MyTable: React.FC = () => {
-    const actions = useActions(tableActions);
-    const data = useTypedSelector(state => state.table.data);
+    const [limit, setLimit] = useState(10);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState<TableType | null>(null);
 
-    const handleDelete = (id: number) => {
-        actions.deleteRecord(id);
+    const { data = [] as TableType[], isLoading, error } = useGetTableDataQuery(limit, {
+        pollingInterval: 10000
+    });
+    const [addRecord] = useAddRecordMutation();
+    const [deleteRecord] = useDeleteRecordMutation();
+    const [updateRecord] = useUpdateRecordMutation();
+
+    useEffect(() => {
+        setTimeout(() => {
+            setLimit(3)
+        }, 2000)
+
+    }, [])
+
+    const handleDelete = async (id: number) => {
+        try{
+            await deleteRecord(id);
+        } catch(error) {
+            console.log('Delete error', error);
+        }
     };
 
-    const handleCreate = (newRecord: TableType) => {
-        actions.addRecord(newRecord);
-        closeModal();
+    const handleCreate = async (newRecord: TableType) => {
+        try {
+            await addRecord(newRecord);
+        } catch(error) {
+            console.log('Delete error', error);
+        } finally {
+            closeModal();
+        }
     };
 
-    const handleUpdate = (updatedRecord: TableType) => {
-        actions.updateRecord(updatedRecord);
+    const handleUpdate = async (updatedRecord: TableType) => {
+        await updateRecord(updatedRecord);
         setEditingRecord(null);
         closeModal();
     };
@@ -91,10 +111,16 @@ export const MyTable: React.FC = () => {
 
     return (
         <div>
-            <Table columns={columns(handleDelete, handleEdit)} dataSource={data} rowKey="id" />
-            <Button type="primary" onClick={showModal} style={{ marginBottom: 16 }}>
-                Add New Record
-            </Button>
+            {isLoading && <h1>Loading..</h1>}
+            {error && <h1>Error..</h1>}
+            {data && !error &&
+                <div>
+                    <Table columns={columns(handleDelete, handleEdit)} dataSource={data} rowKey="id" />
+                    <Button type="primary" onClick={showModal} style={{ marginBottom: 16 }}>
+                        Add New Record
+                    </Button>
+                </div>
+            }
             <NewRecordModal
                 visible={isModalOpen}
                 record={editingRecord}
