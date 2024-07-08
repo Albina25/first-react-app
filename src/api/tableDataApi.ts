@@ -1,47 +1,91 @@
-import {createEffect} from "effector";
-import {FormType, TableType} from "../types.tsx";
-import {tableData} from "../data/TableData.tsx";
-import { $data } from '../models/tableModel';
+//import { TableType } from "../types.tsx";
+import { tableData } from "../data/TableData.tsx";
+import {createMutation, createQuery} from '@farfetched/core';
+import {zodContract} from "@farfetched/zod";
+import {TableTypeSchema, TableType} from "../schemas.ts";
+import {z} from "zod";
+import {FormType} from "../types.tsx";
 
-function getTableData(): TableType[] | [] {
-    return tableData.length ? tableData : [];
-}
+const getTableDataArrayContract = zodContract(TableTypeSchema.array());
+const getTableDataContract = zodContract(TableTypeSchema);
 
-export function wait(timeout = 100) {
-    return new Promise((resolve) => setTimeout(resolve, timeout));
-}
+const getTableDataQuery = createQuery({
+    contract: getTableDataArrayContract,
+    handler: async () => {
+        try {
+            const response = await fetch(`/api/tableData`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            console.log(data)
+            return data;
+        } catch (error) {
+            throw new Error('Catch error...');
+        }
 
-export const tableDataLoadFx = createEffect<void, TableType[], Error>(async () => {
-    const tableData = getTableData();
-    await wait();
-    return tableData ?? [];
+    },
 });
-
-export const deleteRecordFx = createEffect<number, TableType[], Error>(async (id: number) => {
-    const tableData = $data.getState();
-    await wait();
-    const updated = tableData.filter((item) => item.id !== id);
-    return updated;
+const deleteRecordMutation = createQuery({
+    handler: async (id: number) => {
+        try {
+            const response = await fetch(`/api/tableData/${id}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const updated = tableData.filter((item) => item.id !== id);
+            return updated as TableType;
+        } catch (e) {
+            throw new Error('Catch error...');
+        }
+    },
 });
+const addRecordMutation = createQuery({
+    contract: getTableDataContract,
+    handler: async (newRecord: FormType) => {
+        try {
+            console.log('newRecord', newRecord)
 
-export const addRecordFx = createEffect(async(formData: FormType) => {
-    const tableData = $data.getState();
-    await wait();
-    const maxId = Math.max(...tableData.map(item => item.id));
-    return [...tableData, { ...formData, id: maxId + 1 }];
-});
-
-export const updateRecordFx = createEffect();
-
-const updateTableData = async (updatedRecord: TableType) => {
-    const tableData = $data.getState();
-    await wait();
-    const index = tableData.findIndex((item) => item.id === updatedRecord.id);
-    if (index > -1) {
-        const updated = { ...updatedRecord, age: Number(updatedRecord.age) } as TableType;
-        tableData.splice(index, 1, updated);
+            const response = await fetch(`/api/tableData/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newRecord),
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            return data;
+        } catch (e) {
+            throw new Error('Catch error...');
+        }
     }
-    return [...tableData];
-};
+});
+const updateRecordMutation = createMutation({
+    contract: getTableDataContract,
+    handler: async (updatedRecord: z.infer<typeof TableTypeSchema>) => {
+        try {
+            const { id, ...body } = updatedRecord;
+            const response = await fetch(`/api/tableData/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            return data;
+        } catch (e) {
+            throw new Error('Catch error...');
+        }
+    }
+});
 
-updateRecordFx.use(updateTableData);
+export { getTableDataQuery, deleteRecordMutation, addRecordMutation, updateRecordMutation };

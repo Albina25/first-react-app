@@ -1,4 +1,4 @@
-import {createEvent, createStore} from "effector";
+import {createEffect, createEvent, createStore, sample} from "effector";
 import * as tableDataApi from "../api/tableDataApi.ts";
 import {FormType, TableType} from "../types.tsx";
 
@@ -10,34 +10,73 @@ export const addRecord = createEvent<FormType>();
 export const updateRecord = createEvent<Partial<TableType>>();
 
 export const $data = createStore<TableType[]>([])
-    .on(tableDataApi.tableDataLoadFx.doneData, (_, data: TableType[]) => data)
-    .on(tableDataApi.deleteRecordFx.doneData, (_, data: TableType[]) => data)
-    .on(tableDataApi.addRecordFx.doneData, (_, data: TableType[]) => data)
-    .on(tableDataApi.updateRecordFx.doneData, (_, data: TableType[]) => data);
+    /*.on(tableDataApi.getTableDataQuery.finished.success, ({result}) => {
+        console.log(result)
+        return result;
+    })*/
+    .on(tableDataApi.deleteRecordMutation.finished.success, (state, {params}) => {
+        return state.filter((item) => item.id !== params);
+    })
+    .on(tableDataApi.addRecordMutation.finished.success, (state, {result}) => {
+        return [...state, result];
+
+    })
+    .on(tableDataApi.updateRecordMutation.finished.success, (state, {result}) => {
+        const index = state.findIndex(item => item.id === result.id);
+        if (index > -1) {
+            const newState = [...state];
+            newState.splice(index, 1, result);
+            return newState as TableType[];
+        }
+        return state
+    });
 
 export const $isModalOpen = createStore(false)
     .on(openModal, () => true)
     .on(closeModal, () => false)
 
 export const $tableDataLoading = createStore(true)
-    .on(tableDataApi.tableDataLoadFx.pending, () => true)
-    .on(tableDataApi.tableDataLoadFx.done, () => false)
-    .on(tableDataApi.deleteRecordFx.pending, () => true)
-    .on(tableDataApi.deleteRecordFx.done, () => false)
-    .on(tableDataApi.addRecordFx.pending, () => true)
-    .on(tableDataApi.addRecordFx.done, () => false);
+    .on(tableDataApi.getTableDataQuery.finished.success, () => false)
 
 export const $error = createStore<Error | null>(null)
-    .on(tableDataApi.tableDataLoadFx.fail, (_, { error }) => error)
-    .on(tableDataApi.deleteRecordFx.fail, (_, { error }) => error)
-    .on(tableDataApi.addRecordFx.fail, (_, { error }) => error)
-    .on(tableDataApi.updateRecordFx.fail, (_, { error }) => error)
 
-pageMounted.watch(tableDataApi.tableDataLoadFx);
-deleteRecord.watch(id => tableDataApi.deleteRecordFx(id));
-addRecord.watch(tableDataApi.addRecordFx);
-updateRecord.watch(tableDataApi.updateRecordFx);
+sample({
+    clock: pageMounted,
+    target: tableDataApi.getTableDataQuery.start,
+});
 
+
+sample({
+    clock: deleteRecord,
+    target: tableDataApi.deleteRecordMutation.start,
+});
+
+sample({
+    clock: addRecord,
+    target: tableDataApi.addRecordMutation.start,
+});
+
+sample({
+    clock: updateRecord,
+    target: tableDataApi.updateRecordMutation.start,
+});
+
+sample({
+    source: tableDataApi.getTableDataQuery.$data,
+    target: $data,
+});
+
+sample({
+    source: tableDataApi.getTableDataQuery.finished.failure,
+    fn: ({ error }) =>  error.message,
+    target: $error,
+});
+
+sample({
+    source: tableDataApi.addRecordMutation.finished.failure,
+    fn: ({ error }) => error.message,
+    target: $error,
+});
 
 
 

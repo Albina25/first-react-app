@@ -54,6 +54,7 @@ export const NewRecordModal: React.FC<NewRecordModalProps> = ({ visible, record,
                             onUpdate({
                                 ...record,
                                 ...values,
+                                age: Number(values.age),
                                 tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : []
                             });
                         } else {

@@ -5,7 +5,6 @@ import {NewRecordModal} from "./NewRecordModal.tsx";
 import {useUnit} from "effector-react";
 import * as tableModel from "../models/tableModel.ts"
 import {$error, deleteRecord, updateRecord} from "../models/tableModel.ts";
-import {createLogger} from "vite";
 
 export const columns = (handleDelete: (id: number) => void, handleEdit: (record: TableType) => void): TableProps<TableType>['columns'] => [
     {
@@ -118,10 +117,11 @@ export const MyTable: React.FC = () => {
 
     return (
         <div>
-            {tableDataLoading && !data.length && <h1>Loading..</h1>}
-            {error && !data.length && <h1>{error}</h1>}
+            {tableDataLoading && !error && !data.length && <h1>Loading..</h1>}
+            {error && <h1>{error}</h1>}
+            {!tableDataLoading && data.length <= 0 && <div>No data available</div>}
             {
-            data.length > 0 &&
+                data.length > 0 && !error &&
                 <div>
                     <Table columns={columns(handleDelete, handleEdit)} dataSource={data} rowKey="id"/>
                     <Button type="primary" onClick={handleOpenModal} style={{marginBottom: 16}}>
