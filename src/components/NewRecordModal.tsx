@@ -60,7 +60,7 @@ export const NewRecordModal: React.FC<NewRecordModalProps> = ({ visible, record,
                             onCreate(
                                 {
                                     name: values.name,
-                                    age: values.age,
+                                    age: Number(values.age),
                                     address: values.address || '',
                                     tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : []
                                 }

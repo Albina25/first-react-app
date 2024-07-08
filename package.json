@@ -12,6 +12,8 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.6",
     "antd": "^5.19.0",
+    "effector": "^23.2.2",
+    "effector-react": "^23.2.1",
     "mock-config-server": "^3.6.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

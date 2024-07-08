@@ -1,56 +1,47 @@
-import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react'
-import {TableType} from "../types.tsx";
+import {createEffect} from "effector";
+import {FormType, TableType} from "../types.tsx";
+import {tableData} from "../data/TableData.tsx";
+import { $data } from '../models/tableModel';
 
-type tableDataResponse = TableType[];
+function getTableData(): TableType[] | [] {
+    return tableData.length ? tableData : [];
+}
 
-export const tableDataApi = createApi({
-    reducerPath: 'tableDataApi',
-    tagTypes: ['TableData'],
-    baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-    endpoints: (builder) => ({
-        getTableData: builder.query<tableDataResponse, number>({
-            query: (limit: number = 5)  => ({
-                url: `tableData`,
-                params: {
-                    _limit: limit
-                }
-            }),
-            providesTags: (result) => result
-                ? [
-                    ...result.map(({ id }) => ({ type: 'TableData' as const, id })),
-                    { type: 'TableData', id: 'LIST' },
-                ]
-                : [{ type: 'TableData', id: 'LIST' }],
-        }),
-        addRecord: builder.mutation<TableType, Partial<TableType>>({
-            query: (body) => ({
-                url: 'tableData',
-                method: 'POST',
-                body,
-            }),
-            invalidatesTags: [{ type: 'TableData', id: 'LIST' }]
-        }),
-        deleteRecord: builder.mutation<void, number>({
-            query(id) {
-                return {
-                    url: `tableData/${id}`,
-                    method: 'DELETE',
-                }
-            },
-            invalidatesTags: [{ type: 'TableData', id: 'LIST' }],
-        }),
-        updateRecord: builder.mutation<TableType, Partial<TableType>>({
-            query(data) {
-                const { id, ...body } = data
-                return {
-                    url: `tableData/${id}`,
-                    method: 'PATCH',
-                    body: body,
-                }
-            },
-            invalidatesTags: [{ type: 'TableData', id: 'LIST' }],
-        })
-    }),
+export function wait(timeout = 100) {
+    return new Promise((resolve) => setTimeout(resolve, timeout));
+}
+
+export const tableDataLoadFx = createEffect<void, TableType[], Error>(async () => {
+    const tableData = getTableData();
+    await wait();
+    return tableData ?? [];
 });
 
-export const { useGetTableDataQuery, useAddRecordMutation, useDeleteRecordMutation, useUpdateRecordMutation } = tableDataApi;
+export const deleteRecordFx = createEffect<number, TableType[], Error>(async (id: number) => {
+    const tableData = $data.getState();
+    await wait();
+    const updated = tableData.filter((item) => item.id !== id);
+    return updated;
+});
+
+export const addRecordFx = createEffect(async(formData: FormType) => {
+    const tableData = $data.getState();
+    await wait();
+    const maxId = Math.max(...tableData.map(item => item.id));
+    return [...tableData, { ...formData, id: maxId + 1 }];
+});
+
+export const updateRecordFx = createEffect();
+
+const updateTableData = async (updatedRecord: TableType) => {
+    const tableData = $data.getState();
+    await wait();
+    const index = tableData.findIndex((item) => item.id === updatedRecord.id);
+    if (index > -1) {
+        const updated = { ...updatedRecord, age: Number(updatedRecord.age) } as TableType;
+        tableData.splice(index, 1, updated);
+    }
+    return [...tableData];
+};
+
+updateRecordFx.use(updateTableData);
