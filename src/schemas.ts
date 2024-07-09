@@ -9,5 +9,5 @@ export const TableTypeSchema = z.object({
     tags: z.array(z.string()).optional(),
 });
 
-//export const TableTypeContract = z.array(TableTypeSchema);
+export const TableTypeArraySchema = z.array(TableTypeSchema);
 export type TableType = z.infer<typeof TableTypeSchema>;

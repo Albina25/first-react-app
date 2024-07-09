@@ -1,16 +1,69 @@
-//import { TableType } from "../types.tsx";
-import { tableData } from "../data/TableData.tsx";
-import {createMutation, createQuery} from '@farfetched/core';
+import {
+    createJsonMutation,
+    createJsonQuery,
+    declareParams,
+    unknownContract
+} from '@farfetched/core';
 import {zodContract} from "@farfetched/zod";
-import {TableTypeSchema, TableType} from "../schemas.ts";
-import {z} from "zod";
+import {TableTypeSchema, TableType, TableTypeArraySchema} from "../schemas.ts";
 import {FormType} from "../types.tsx";
 
-const getTableDataArrayContract = zodContract(TableTypeSchema.array());
+const getTableDataArrayContract = zodContract(TableTypeArraySchema);
 const getTableDataContract = zodContract(TableTypeSchema);
 
-const getTableDataQuery = createQuery({
-    contract: getTableDataArrayContract,
+const getTableDataQuery = createJsonQuery({
+    params: declareParams<void>(),
+    request: {
+        method: 'GET',
+        url: 'http://localhost:31299/tableData',
+    },
+    response: {
+        contract: getTableDataArrayContract,
+    },
+});
+
+const deleteRecordMutation = createJsonMutation({
+    params: declareParams<number>(),
+    request: {
+        method: 'DELETE',
+        url:(id) => `http://localhost:31299/tableData/${id}`,
+    },
+    response: {
+        contract: unknownContract,
+        status: { expected: 204 },
+    },
+});
+
+const addRecordMutation = createJsonMutation({
+    params: declareParams<FormType>(),
+    request: {
+        method: 'POST',
+        url:() => `http://localhost:31299/tableData`,
+        body: (newRecord) => (newRecord),
+    },
+    response: {
+        contract: getTableDataContract,
+        status: { expected: 201 },
+    },
+});
+
+const updateRecordMutation = createJsonMutation({
+    params: declareParams<TableType>(),
+    request: {
+        method: 'PATCH',
+        url:({id}) => `http://localhost:31299/tableData/${id}`,
+        body: (updatedRecord) => (updatedRecord),
+    },
+    response: {
+        contract: getTableDataContract,
+        status: { expected: 200 },
+    },
+});
+
+export { getTableDataQuery, deleteRecordMutation, addRecordMutation, updateRecordMutation };
+
+/*const getTableDataQuery = createQuery({
+    //contract: getTableDataArrayContract,
     handler: async () => {
         try {
             const response = await fetch(`/api/tableData`);
@@ -18,74 +71,11 @@ const getTableDataQuery = createQuery({
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            console.log(data)
-            return data;
+            const DataParse = TableTypeArraySchema.parse(data);
+            return DataParse;
         } catch (error) {
             throw new Error('Catch error...');
         }
 
     },
-});
-const deleteRecordMutation = createQuery({
-    handler: async (id: number) => {
-        try {
-            const response = await fetch(`/api/tableData/${id}`, {
-                method: 'DELETE',
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            const updated = tableData.filter((item) => item.id !== id);
-            return updated as TableType;
-        } catch (e) {
-            throw new Error('Catch error...');
-        }
-    },
-});
-const addRecordMutation = createQuery({
-    contract: getTableDataContract,
-    handler: async (newRecord: FormType) => {
-        try {
-            console.log('newRecord', newRecord)
-
-            const response = await fetch(`/api/tableData/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newRecord),
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            const data = await response.json();
-            return data;
-        } catch (e) {
-            throw new Error('Catch error...');
-        }
-    }
-});
-const updateRecordMutation = createMutation({
-    contract: getTableDataContract,
-    handler: async (updatedRecord: z.infer<typeof TableTypeSchema>) => {
-        try {
-            const { id, ...body } = updatedRecord;
-            const response = await fetch(`/api/tableData/${id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(body),
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            const data = await response.json();
-            return data;
-        } catch (e) {
-            throw new Error('Catch error...');
-        }
-    }
-});
-
-export { getTableDataQuery, deleteRecordMutation, addRecordMutation, updateRecordMutation };
+});*/

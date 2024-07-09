@@ -1,6 +1,7 @@
-import {createEffect, createEvent, createStore, sample} from "effector";
+import {createEvent, createStore, sample} from "effector";
 import * as tableDataApi from "../api/tableDataApi.ts";
-import {FormType, TableType} from "../types.tsx";
+import {FormType} from "../types.tsx";
+import {TableType} from "../schemas.ts"
 
 export const pageMounted = createEvent();
 export const openModal = createEvent();
@@ -19,14 +20,13 @@ export const $data = createStore<TableType[]>([])
     })
     .on(tableDataApi.addRecordMutation.finished.success, (state, {result}) => {
         return [...state, result];
-
     })
     .on(tableDataApi.updateRecordMutation.finished.success, (state, {result}) => {
         const index = state.findIndex(item => item.id === result.id);
         if (index > -1) {
             const newState = [...state];
             newState.splice(index, 1, result);
-            return newState as TableType[];
+            return newState;
         }
         return state
     });
@@ -38,7 +38,7 @@ export const $isModalOpen = createStore(false)
 export const $tableDataLoading = createStore(true)
     .on(tableDataApi.getTableDataQuery.finished.success, () => false)
 
-export const $error = createStore<Error | null>(null)
+export const $error = createStore<Error | null>(null);
 
 sample({
     clock: pageMounted,
@@ -61,6 +61,7 @@ sample({
     target: tableDataApi.updateRecordMutation.start,
 });
 
+
 sample({
     source: tableDataApi.getTableDataQuery.$data,
     target: $data,
@@ -78,6 +79,6 @@ sample({
     target: $error,
 });
 
-
-
-
+tableDataApi.getTableDataQuery.finished.failure.watch((error) => {
+    console.log({error})
+})
