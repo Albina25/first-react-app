@@ -9,7 +9,10 @@ export const closeModal = createEvent();
 export const deleteRecord = createEvent<number>();
 export const addRecord = createEvent<FormType>();
 export const updateRecord = createEvent<Partial<TableType>>();
+export const getRecordById = createEvent<number>()
 
+
+export const $record = createStore<TableType | null>(null);
 export const $data = createStore<TableType[]>([])
     /*.on(tableDataApi.getTableDataQuery.finished.success, ({result}) => {
         console.log(result)
@@ -45,6 +48,15 @@ sample({
     target: tableDataApi.getTableDataQuery.start,
 });
 
+sample({
+    clock: getRecordById,
+    target: tableDataApi.getRecordByIdQuery.start,
+});
+
+sample({
+    source: tableDataApi.getRecordByIdQuery.$data,
+    target: $record,
+});
 
 sample({
     clock: deleteRecord,
@@ -60,7 +72,6 @@ sample({
     clock: updateRecord,
     target: tableDataApi.updateRecordMutation.start,
 });
-
 
 sample({
     source: tableDataApi.getTableDataQuery.$data,

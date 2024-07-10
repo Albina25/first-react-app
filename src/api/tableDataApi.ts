@@ -22,6 +22,17 @@ const getTableDataQuery = createJsonQuery({
     },
 });
 
+const getRecordByIdQuery = createJsonQuery({
+    params: declareParams<number>(),
+    request: {
+        method: 'GET',
+        url: (id) => `http://localhost:31299/tableData/${id}`,
+    },
+    response: {
+        contract: getTableDataContract,
+    },
+});
+
 const deleteRecordMutation = createJsonMutation({
     params: declareParams<number>(),
     request: {
@@ -60,7 +71,7 @@ const updateRecordMutation = createJsonMutation({
     },
 });
 
-export { getTableDataQuery, deleteRecordMutation, addRecordMutation, updateRecordMutation };
+export { getTableDataQuery, getRecordByIdQuery, deleteRecordMutation, addRecordMutation, updateRecordMutation };
 
 /*const getTableDataQuery = createQuery({
     //contract: getTableDataArrayContract,

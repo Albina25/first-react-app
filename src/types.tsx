@@ -1,3 +1,5 @@
+import React from "react";
+
 export interface TableType {
     id: number;
     name: string;
@@ -13,3 +15,8 @@ export interface FormType {
     tags?: string[];
 }
 
+export type RouteType = {
+    path: string;
+    component: React.FC;
+    exact: boolean;
+};
