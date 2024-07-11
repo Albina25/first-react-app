@@ -1,12 +1,11 @@
 import React, {useEffect, useState} from "react";
 import {Button, Space, Table, TableProps, Tag} from 'antd';
-import {FormType, TableType} from "../types.tsx";
-import {NewRecordModal} from "./NewRecordModal.tsx";
+import {FormType, TableType} from "../../types.tsx";
+import {NewRecordModal} from "../../components/NewRecordModal.tsx";
 import {useUnit} from "effector-react";
-import * as tableModel from "../models/tableModel.ts"
-import {$error, deleteRecord, updateRecord} from "../models/tableModel.ts";
+import * as tableModel from "./model.ts"
 
-export const columns = (handleDelete: (id: number) => void, handleEdit: (record: TableType) => void): TableProps<TableType>['columns'] => [
+export const columns = (handleDelete: (event, id: number) => void, handleEdit: (event, record: TableType) => void): TableProps<TableType>['columns'] => [
     {
         title: 'Name',
         dataIndex: 'name',
@@ -47,14 +46,15 @@ export const columns = (handleDelete: (id: number) => void, handleEdit: (record:
         key: 'action',
         render: (_, record: TableType) => (
             <Space size="middle">
-                <a onClick={() => handleEdit(record)}>Update {record.name}</a>
-                <a onClick={() => handleDelete(record.id)}>Delete</a>
+                <a onClick={(event) => handleEdit(event, record)}>Update {record.name}</a>
+                <a onClick={(event) => handleDelete(event, record.id)}>Delete</a>
             </Space>
         ),
     },
 ];
 
-export const MyTable: React.FC = () => {
+const TablePage = () => {
+    //const navigate = useNavigate();
     const handlePageMount = useUnit(tableModel.pageMounted);
     const [
         tableDataLoading,
@@ -65,7 +65,8 @@ export const MyTable: React.FC = () => {
         deleteRecord,
         addRecord,
         updateRecord,
-        error
+        error,
+        openRecord,
     ] = useUnit(
         [
             tableModel.$tableDataLoading,
@@ -76,7 +77,8 @@ export const MyTable: React.FC = () => {
             tableModel.deleteRecord,
             tableModel.addRecord,
             tableModel.updateRecord,
-            tableModel.$error
+            tableModel.$error,
+            tableModel.openRecord
         ]
     );
 
@@ -86,7 +88,8 @@ export const MyTable: React.FC = () => {
         handlePageMount();
     }, [handlePageMount]);
 
-    const handleDelete = (id: number) => {
+    const handleDelete = (event, id: number) => {
+        event.stopPropagation();
         deleteRecord(id);
     };
 
@@ -96,14 +99,22 @@ export const MyTable: React.FC = () => {
     };
 
     const handleUpdate = (updatedRecord: TableType) => {
+        console.log('update')
         updateRecord(updatedRecord);
         setEditingRecord(null);
         closeModal();
     };
 
-    const handleEdit = (record: TableType) => {
+    const handleEdit = (event, record: TableType) => {
+        event.stopPropagation();
         setEditingRecord(record);
         openModal();
+    };
+
+    //const navigateToDetails = useLink(detailsRoute, {});
+    const handleRowClick = (record: TableType) => {
+        //navigateToDetails({ params: { id: record.id } });
+        openRecord(record.id);
     };
 
     const handleOpenModal = () => {
@@ -123,7 +134,14 @@ export const MyTable: React.FC = () => {
             {
                 data.length > 0 && !error &&
                 <div>
-                    <Table columns={columns(handleDelete, handleEdit)} dataSource={data} rowKey="id"/>
+                    <Table
+                        columns={columns(handleDelete, handleEdit)}
+                        dataSource={data}
+                        rowKey="id"
+                        onRow={(record) => ({
+                            onClick: () => handleRowClick(record),
+                        })}
+                    />
                     <Button type="primary" onClick={handleOpenModal} style={{marginBottom: 16}}>
                         Add New Record
                     </Button>
@@ -139,3 +157,5 @@ export const MyTable: React.FC = () => {
         </div>
     )
 };
+
+export default TablePage;

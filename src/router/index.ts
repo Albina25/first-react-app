@@ -1,32 +1,24 @@
-//import {createHistoryRouter, createRoute} from 'atomic-router';
-//import { createBrowserHistory, createMemoryHistory } from 'history';
-//import {RouteType} from "../types.tsx";
+import { createHistoryRouter, createRoute } from 'atomic-router';
+import { createBrowserHistory, createMemoryHistory } from 'history';
 
-import  { TablePage } from '../pages/TablePage.tsx';
-import RecordDetailsPage from "../pages/RecordDetailsPage.tsx";
-//import RecordDetailsPage from "../pages/RecordDetailsPage.tsx";
+/*export const tableRoute = createRoute();
+export const detailsRoute = createRoute<{ id: number }>();*/
 
-//const tableRoute = createRoute();
+export const routes = {
+    main: createRoute(),
+    details: createRoute<{ id: number }>(),
+}
 
-
-// 1. Define routes
-/*const routes = [
-    { path: '/', route: tableRoute, view: TablePage },
-    //{ path: '/details/:id', route: detailsRoute, view: RecordDetailsPage, exact: true },
-];*/
-
-export const routes = [
-    { path: '/', component: TablePage, exact: true},
-    { path: '/details/:id', component: RecordDetailsPage, exact: true },
+const mainRoutes = [
+    { path: '/', route: routes.main },
+    { path: '/details/:id', route: routes.details },
 ];
 
-/*const router = createHistoryRouter({
-    routes,
+export const router = createHistoryRouter({
+    routes: mainRoutes,
 });
 
 const isSsr = typeof window === 'undefined';
 const history = isSsr ? createMemoryHistory() : createBrowserHistory();
 
-router.setHistory(history);*/
-
-export { router, tableRoute, detailsRoute };
+router.setHistory(history);

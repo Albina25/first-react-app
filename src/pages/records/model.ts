@@ -1,7 +1,11 @@
+import {routes} from "../../router"
 import {createEvent, createStore, sample} from "effector";
-import * as tableDataApi from "../api/tableDataApi.ts";
-import {FormType} from "../types.tsx";
-import {TableType} from "../schemas.ts"
+import * as tableDataApi from "../../api/tableDataApi.ts";
+import {FormType} from "../../types.tsx";
+import {TableType} from "../../schemas.ts"
+import {redirect} from "atomic-router";
+
+export const currentRoute = routes.main;
 
 export const pageMounted = createEvent();
 export const openModal = createEvent();
@@ -9,7 +13,8 @@ export const closeModal = createEvent();
 export const deleteRecord = createEvent<number>();
 export const addRecord = createEvent<FormType>();
 export const updateRecord = createEvent<Partial<TableType>>();
-export const getRecordById = createEvent<number>()
+export const getRecordById = createEvent<number>();
+export const openRecord = createEvent<number>()
 
 
 export const $record = createStore<TableType | null>(null);
@@ -93,3 +98,39 @@ sample({
 tableDataApi.getTableDataQuery.finished.failure.watch((error) => {
     console.log({error})
 })
+
+sample({
+    source: currentRoute.$params,
+    fn: (params) => {
+        console.log('p', params)
+        return params.id
+    },
+    //filter: detailsRoute.$isOpened,
+    target: tableDataApi.getRecordByIdQuery.start,
+});
+
+sample({
+    clock: openRecord,
+    fn: (id) => ({
+        params: { id: id },
+    }),
+    target: routes.details.navigate,
+})
+
+
+sample({
+    clock: currentRoute.updated,
+    fn: ({ params }) => {
+        console.log('updated', params); return ({ id: params.id })},
+    target: tableDataApi.getRecordByIdQuery.start,
+});
+
+redirect({
+    clock: tableDataApi.updateRecordMutation.finished.success,
+    route: currentRoute,
+});
+
+currentRoute.$params.watch(console.log);
+tableDataApi.getRecordByIdQuery.finished.success.watch(()=>{
+    console.log('success')})
+
