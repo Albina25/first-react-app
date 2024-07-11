@@ -1,77 +1,86 @@
 import {
-    createJsonMutation,
-    createJsonQuery,
-    declareParams,
-    unknownContract
-} from '@farfetched/core';
-import {zodContract} from "@farfetched/zod";
-import {TableTypeSchema, TableType, TableTypeArraySchema} from "../schemas.ts";
-import {FormType} from "../types.tsx";
+  createJsonMutation,
+  createJsonQuery,
+  declareParams,
+  unknownContract,
+} from "@farfetched/core";
+import { zodContract } from "@farfetched/zod";
+import {
+  TableTypeSchema,
+  TableType,
+  TableTypeArraySchema,
+} from "../schemas.ts";
+import { FormType } from "../types.tsx";
 
 const getTableDataArrayContract = zodContract(TableTypeArraySchema);
 const getTableDataContract = zodContract(TableTypeSchema);
 
 const getTableDataQuery = createJsonQuery({
-    params: declareParams<void>(),
-    request: {
-        method: 'GET',
-        url: 'http://localhost:31299/tableData',
-    },
-    response: {
-        contract: getTableDataArrayContract,
-    },
+  params: declareParams<void>(),
+  request: {
+    method: "GET",
+    url: "http://localhost:31299/tableData",
+  },
+  response: {
+    contract: getTableDataArrayContract,
+  },
 });
 
-const getRecordByIdQuery = createJsonQuery({
-    params: declareParams<number>(),
-    request: {
-        method: 'GET',
-        url: (id) => `http://localhost:31299/tableData/${id}`,
-    },
-    response: {
-        contract: getTableDataContract,
-    },
+export const getRecordByIdQuery = createJsonQuery({
+  params: declareParams<number>(),
+  request: {
+    method: "GET",
+    url: (id) => `http://localhost:31299/tableData/${id}`,
+  },
+  response: {
+    contract: getTableDataContract,
+  },
 });
 
 const deleteRecordMutation = createJsonMutation({
-    params: declareParams<number>(),
-    request: {
-        method: 'DELETE',
-        url:(id) => `http://localhost:31299/tableData/${id}`,
-    },
-    response: {
-        contract: unknownContract,
-        status: { expected: 204 },
-    },
+  params: declareParams<number>(),
+  request: {
+    method: "DELETE",
+    url: (id) => `http://localhost:31299/tableData/${id}`,
+  },
+  response: {
+    contract: unknownContract,
+    status: { expected: 204 },
+  },
 });
 
 const addRecordMutation = createJsonMutation({
-    params: declareParams<FormType>(),
-    request: {
-        method: 'POST',
-        url:() => `http://localhost:31299/tableData`,
-        body: (newRecord) => (newRecord),
-    },
-    response: {
-        contract: getTableDataContract,
-        status: { expected: 201 },
-    },
+  params: declareParams<FormType>(),
+  request: {
+    method: "POST",
+    url: () => `http://localhost:31299/tableData`,
+    body: (newRecord) => newRecord,
+  },
+  response: {
+    contract: getTableDataContract,
+    status: { expected: 201 },
+  },
 });
 
 const updateRecordMutation = createJsonMutation({
-    params: declareParams<TableType>(),
-    request: {
-        method: 'PATCH',
-        url:({id}) => `http://localhost:31299/tableData/${id}`,
-        body: (updatedRecord) => (updatedRecord),
-    },
-    response: {
-        contract: getTableDataContract,
-        status: { expected: 200 },
-    },
+  params: declareParams<Partial<TableType>>(),
+  request: {
+    method: "PATCH",
+    url: ({ id }) => `http://localhost:31299/tableData/${id}`,
+    body: (updatedRecord) => updatedRecord,
+  },
+  response: {
+    contract: getTableDataContract,
+    status: { expected: 200 },
+  },
 });
 
-export { getTableDataQuery, getRecordByIdQuery, deleteRecordMutation, addRecordMutation, updateRecordMutation };
+export {
+  getTableDataQuery,
+  deleteRecordMutation,
+  addRecordMutation,
+  updateRecordMutation,
+};
 
 /*const getTableDataQuery = createQuery({
     //contract: getTableDataArrayContract,
